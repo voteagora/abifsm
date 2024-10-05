@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "abifsm"
+version = "0.1.0"
+description = "A library for working with sets of EVM contracts and their ABIs, for getting consistent naming conventions compatible with other systems."
+readme = "README.rst"
+authors = [
+  {name = "jefag", email = "jeff@voteagora.com"}
+]
+maintainers = [
+  {name = "jefag", email = "jeff@voteagora.com"}
+]
+classifiers = [
+
+]
+license = {text = "MIT license"}
+dependencies = [
+  
+]
+
+[project.optional-dependencies]
+dev = [
+    "coverage",  # testing
+    "mypy",  # linting
+    "pytest",  # testing
+    "ruff"  # linting
+]
+
+[project.urls]
+
+bugs = "https://github.com/voteagora/abifsm/issues"
+changelog = "https://github.com/voteagora/abifsm/blob/master/changelog.md"
+homepage = "https://github.com/voteagora/abifsm"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+"*" = ["*.*"]
+
+
+
+
+# Mypy
+# ----
+
+[tool.mypy]
+files = "."
+
+# Use strict defaults
+strict = true
+warn_unreachable = true
+warn_no_return = true
+
+[[tool.mypy.overrides]]
+# Don't require test functions to include types
+module = "tests.*"
+allow_untyped_defs = true
+disable_error_code = "attr-defined"
+
