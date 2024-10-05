@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 
 """Tests for `abifsm` package."""
-
-import pytest
-
+import pytest, os
 
 from abifsm import ABI, ABISet
+
+def skip_if_env_not_set(env_var):
+    return pytest.mark.skipif(
+        env_var not in os.environ,
+        reason=f"Environment variable '{env_var}' is not set"
+    )
+
+skip_if_no_abi_url = skip_if_env_not_set("ABI_URL")
 
 @pytest.fixture
 def abiset():
@@ -25,6 +31,65 @@ def test_event_iteration(abiset):
     
     assert count == 30
 
+def test_abi_len():
+
+    abi = ABI.from_file('token', 'tests/abis/0x54bec61cf9b5daadd12d79196737974243dda684.json')
+
+    assert len(abi) == 71
+
+def test_abis_len(abiset):
+
+    assert len(abiset) == 162
+
+def test_compare_tables_matching(abiset):
+
+    abiset.compare_tables(abiset)
+    diff = abiset.compare_tables(abiset, printit=False)
+
+    diffs = list(diff)
+    assert len(diffs) == 30 # there should be 30 things compared.
+    assert len([d for d in diffs if d[:2].strip() != '']) == 0 # there should be no mismatches.
+
+def test_compare_signatures_matching(abiset):
+
+    abiset.compare_signatures(abiset)
+    diff = abiset.compare_signatures(abiset, printit=False)
+
+    diffs = list(diff)
+    assert len(diffs) == 162 # there should be 30 things compared.
+    assert len([d for d in diffs if d[:2].strip() != '']) == 0 # there should be no mismatches.
+
+def test_compare_signatures_mismatching():
+
+    token_1_abi = ABI.from_file('token', 'tests/abis/0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72.json')
+    token_2_abi = ABI.from_file('token', 'tests/abis/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984.json')
+
+    abis1 = ABISet('1', [token_1_abi])
+    abis2 = ABISet('2', [token_2_abi])
+
+    abis1.compare_signatures(abis2)
+    diff = abis1.compare_signatures(abis2, printit=False)
+
+    diffs = list(diff)
+    assert len(diffs) == 43 # there should be 43 things compared.
+    assert len([d for d in diffs if d[:2].strip() != '']) == 32 # there should be 32 differences.
+
+def test_compare_events_mismatching():
+
+    token_1_abi = ABI.from_file('token', 'tests/abis/0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72.json')
+    token_2_abi = ABI.from_file('token', 'tests/abis/0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984.json')
+
+    abis1 = ABISet('1', [token_1_abi])
+    abis2 = ABISet('2', [token_2_abi])
+
+    abis1.compare_events(abis2)
+    diff = abis1.compare_events(abis2, printit=False)
+
+    diffs = list(diff)
+    assert len(diffs) == 7 # there should be 7 things compared.
+    assert len([d for d in diffs if d[:2].strip() != '']) == 5 # there should be 32 differences.
+
+@skip_if_no_abi_url
 def test_read_from_internet():
 
     abi_b = ABI.from_file('token', 'tests/abis/0x54bec61cf9b5daadd12d79196737974243dda684.json')

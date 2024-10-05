@@ -35,6 +35,9 @@ bugs = "https://github.com/voteagora/abifsm/issues"
 changelog = "https://github.com/voteagora/abifsm/blob/master/changelog.md"
 homepage = "https://github.com/voteagora/abifsm"
 
+[project.scripts]
+abifsm = "abifsm.cli:main"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 

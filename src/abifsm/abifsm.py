@@ -1,6 +1,7 @@
 import re, os, json
 from collections import Counter
 from web3 import Web3 as w3
+from difflib import ndiff, unified_diff
 
 import requests as r
 
@@ -42,21 +43,24 @@ class Fragment:
     
 
 class ABI:
-    def __init__(self, label, fragments):
+    def __init__(self, label, abi_json):
         self.label = label
-        self.fragments = fragments
+        self.fragments = [Fragment(label, frag) for frag in abi_json]
         self.fragments.sort(key=lambda x: str(x.name) + x.topic)
-        self.counts = Counter([frag.name for frag in fragments if frag.type == 'event'])
+        self.counts = Counter([frag.name for frag in self.fragments if frag.type == 'event'])
 
         for fragment in self.fragments:
             fragment.include_topic = self.counts[fragment.name] > 1
+
+    def __len__(self):
+        return len(self.fragments)
 
     @staticmethod    
     def from_file(label, fname):
 
         with open(fname) as f:
             abi_json = json.load(f)
-            return ABI(label, [Fragment(label, frag) for frag in abi_json])
+            return ABI(label, abi_json)
 
     @staticmethod    
     def from_internet(label, address, url=None, check=True):
@@ -67,7 +71,11 @@ class ABI:
         if check:
             address = w3.to_checksum_address(address)
 
-        abi_json = r.get(url + address + ".json").json()
+        full_url = url + address + ".json"
+        try:
+            abi_json = r.get(full_url).json()
+        except:
+            raise Exception(f"ABI not found for {address} @ {full_url}.")
 
         return ABI(label, abi_json)
 
@@ -82,6 +90,11 @@ class ABISet:
             for fragment in abi.fragments:
                 if fragment.type == 'event':
                     yield fragment
+    @property
+    def fragments(self):
+        for abi in self.abis:
+            for fragment in abi.fragments:
+                yield fragment
     
     def get_by_topic(self, key):
 
@@ -112,7 +125,49 @@ class ABISet:
         
         return out
     
+    def pgtables(self):
+        for event in self.events:
+            yield self.pgtable(event)
     
+    def __len__(self):
+        return sum([len(abi) for abi in self.abis])
 
-    
+    def compare_tables(self, other, printit=True):
+
+        self_tables = list(self.pgtables())
+        other_tables = list(other.pgtables())
+
+        diff = ndiff(self_tables, other_tables)
+
+        if printit:
+            print("\n")
+            print('\n'.join(diff), end="\n")
+
+        return diff
+
+    def compare_signatures(self, other, printit=True):
+
+        self_signatures = [f.signature for f in self.fragments]
+        othr_signatures = [f.signature for f in other.fragments]
+
+        diff = ndiff(self_signatures, othr_signatures)
+
+        if printit:
+            print("\n")
+            print('\n'.join(diff), end="\n")
+
+        return diff
+
+    def compare_events(self, other, printit=True):
+
+        self_events = [e.signature for e in self.events]
+        othr_events = [e.signature for e in other.events]
+
+        diff = ndiff(self_events, othr_events)
+
+        if printit:
+            print("\n")
+            print('\n'.join(diff), end="\n")
+
+        return diff
 
