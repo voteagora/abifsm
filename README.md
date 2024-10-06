@@ -4,9 +4,9 @@ A library for working with sets of EVM contracts and their ABIs, mostly for gett
 
 Basically syntatic sugar for...
 * Iterating over (sorted) events
-* Looking up ABI by topic
-* Getting the topic from an ABI
-* Creating postgres-compatible names that are internally unique against a set of contracts
+* Looking up ABI-fragments by topic
+* Getting the topic from an ABI-fragment
+* Creating postgres-compatible names that are internally unique against a set of contracts, and shorter than 63 chars.
 
 Plus...
 
