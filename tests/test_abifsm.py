@@ -3,7 +3,7 @@
 """Tests for `abifsm` package."""
 import pytest, os
 
-from abifsm import ABI, ABISet
+from abifsm import ABI, ABISet, FQPGSqlGen
 
 def skip_if_env_not_set(env_var):
     return pytest.mark.skipif(
@@ -19,7 +19,7 @@ def abiset():
     abi2 = ABI.from_file('gov', 'tests/abis/0x7292df10a65793398f77af44da6da1c3cb10932e.json')
     abi3 = ABI.from_file('ptc', 'tests/abis/0xd33bb23fe5fbee2cb78c7d337c3af22c69b5b21a.json')
 
-    abis = ABISet('testnftdao', [abi1, abi2, abi3])
+    abis = ABISet('mydao', [abi1, abi2, abi3])
     return abis
 
 def test_event_iteration(abiset):
@@ -99,6 +99,41 @@ def test_lookup_and_table_naming(abiset):
 
     assert abiset.get_by_topic('ccb45da8').name == 'ProposalThresholdSet'
     assert abiset.get_by_topic('ccb45da8d5717e6c4544694297c4ba5cf151d455c9bb0ed4fc7a38411bc05461').slug == 'proposal_threshold_set'
-    assert abiset.pgtable(abiset.get_by_topic('ccb45da8d5717e6c4544694297c4ba5cf151d455c9bb0ed4fc7a38411bc05461')) == 'testnftdao_gov_proposal_threshold_set'
+    assert abiset.pgtable(abiset.get_by_topic('ccb45da8d5717e6c4544694297c4ba5cf151d455c9bb0ed4fc7a38411bc05461')) == 'mydao_gov_proposal_threshold_set'
     assert abiset.get_by_name('proposal_created', 2).topic == 'c8df7ff219f3c0358e14500814d8b62b443a4bebf3a596baa60b9295b1cf1bde'
     assert abiset.get_by_name('ProposalCreated', 2).topic == 'c8df7ff219f3c0358e14500814d8b62b443a4bebf3a596baa60b9295b1cf1bde'
+
+def test_table_name_gen(abiset):
+
+    pg = FQPGSqlGen(abiset)
+
+    assert pg['ccb45da8'] == 'mydao_gov_proposal_threshold_set'
+
+def test_fully_qualified_table_name_gen(abiset):
+
+    pg = FQPGSqlGen(abiset, 'indexer')
+
+    obj = pg['ProposalThresholdSet']
+
+    assert obj == 'indexer.mydao_gov_proposal_threshold_set'
+
+def test_snippet_in_readme():
+
+    token = ABI.from_file('token', 'tests/abis/0x54bec61cf9b5daadd12d79196737974243dda684.json')
+    gov = ABI.from_internet('gov', '0x7292df10a65793398f77af44da6da1c3cb10932e')
+    ptc = ABI.from_internet('ptc', '0xd33bb23fe5fbee2cb78c7d337c3af22c69b5b21a')
+
+    abis = ABISet('mydao', [token, gov, ptc])
+
+    for table_name in abis.pgtables(): # Will be in order of event name + topic to break ties.
+        print(table_name)
+    
+    for table_name in abis.pgtables(sort=True): # Will be in alphabetical order, including prefixes.
+        print(table_name)
+    
+    for event in abis.events:
+        print(event.topic)
+    
+    print(abis.pgtable(abis.get_by_name('ProposalCreated', 2)))
+
+    print(abis.pgtable(abis.get_by_topic('ccb45da8')))

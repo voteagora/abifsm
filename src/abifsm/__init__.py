@@ -4,4 +4,4 @@ __author__ = """jefag"""
 __email__ = 'jeff@voteagora.com'
 __version__ = '0.1.0'
 
-from .abifsm import ABI, ABISet
+from .abifsm import ABI, ABISet, FQPGSqlGen

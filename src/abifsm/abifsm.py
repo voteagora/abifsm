@@ -96,6 +96,12 @@ class ABISet:
             for fragment in abi.fragments:
                 yield fragment
     
+    def get_pgtable_by_name(self, name):
+
+        event = self.get_by_name(name)
+
+        return self.pgtable(event)
+    
     def get_by_topic(self, key):
 
         for event in self.events:
@@ -105,7 +111,10 @@ class ABISet:
     def get_by_name(self, key, pos=0):
 
         for event in self.events:
+            print(f"{event.name} != {key}")
+            print(event.name == key)
             if (str(event.slug) == key) or (str(event.name) == key):
+                print(f"Found {pos}")
                 if pos == 0:
                     return event
                 else:
@@ -125,9 +134,15 @@ class ABISet:
         
         return out
     
-    def pgtables(self):
-        for event in self.events:
-            yield self.pgtable(event)
+    def pgtables(self, sort=False):
+
+        tables = [self.pgtable(event) for event in self.events]
+
+        if sort:
+            tables.sort()
+        
+        for table in tables:
+            yield table
     
     def __len__(self):
         return sum([len(abi) for abi in self.abis])
@@ -170,4 +185,35 @@ class ABISet:
             print('\n'.join(diff), end="\n")
 
         return diff
+    
+class FQPGSqlGen:
+    def __init__(self, abis, schema=None):
+        self.abis = abis
+        self.schema = schema
+
+    def __getitem__(self, key):
+
+        event = None
+        event_by_name = None
+        event_by_topic = None
+
+        try:
+            event_by_name = self.abis.get_by_name(key)
+        except:
+            pass
+        
+        try:
+            event_by_topic = self.abis.get_by_topic(key)
+        except:
+            pass
+
+        event = event_by_name or event_by_topic
+
+        if event is None:
+            raise KeyError(f"No ABI found for {key}")
+        
+        if self.schema:
+            return self.schema + "." + self.abis.pgtable(event)
+        else:
+            return self.abis.pgtable(event)
 
