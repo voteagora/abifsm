@@ -111,15 +111,21 @@ class ABISet:
     def get_by_name(self, key, pos=0):
 
         for event in self.events:
-            print(f"{event.name} != {key}")
-            print(event.name == key)
             if (str(event.slug) == key) or (str(event.name) == key):
-                print(f"Found {pos}")
                 if pos == 0:
                     return event
                 else:
                     pos = pos - 1
-    
+
+    def get_by_signature(self, key, pos=0):
+
+        for event in self.events:
+            if event.signature == key:
+                if pos == 0:
+                    return event
+                else:
+                    pos = pos - 1
+
     def pgtable(self, event, check=True):
 
         prefix = self.name + '_' + event.abi_label + '_'

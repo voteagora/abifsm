@@ -102,6 +102,7 @@ def test_lookup_and_table_naming(abiset):
     assert abiset.pgtable(abiset.get_by_topic('ccb45da8d5717e6c4544694297c4ba5cf151d455c9bb0ed4fc7a38411bc05461')) == 'mydao_gov_proposal_threshold_set'
     assert abiset.get_by_name('proposal_created', 2).topic == 'c8df7ff219f3c0358e14500814d8b62b443a4bebf3a596baa60b9295b1cf1bde'
     assert abiset.get_by_name('ProposalCreated', 2).topic == 'c8df7ff219f3c0358e14500814d8b62b443a4bebf3a596baa60b9295b1cf1bde'
+    assert abiset.get_by_signature('ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string,uint8)').topic == 'c8df7ff219f3c0358e14500814d8b62b443a4bebf3a596baa60b9295b1cf1bde'
 
 def test_table_name_gen(abiset):
 
@@ -117,6 +118,7 @@ def test_fully_qualified_table_name_gen(abiset):
 
     assert obj == 'indexer.mydao_gov_proposal_threshold_set'
 
+@skip_if_no_abi_url
 def test_snippet_in_readme():
 
     token = ABI.from_file('token', 'tests/abis/0x54bec61cf9b5daadd12d79196737974243dda684.json')
