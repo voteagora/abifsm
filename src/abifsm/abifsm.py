@@ -3,6 +3,11 @@ from collections import Counter
 from web3 import Web3 as w3
 from difflib import ndiff, unified_diff
 
+import os 
+
+os.environ['ABI_URL'] = 'https://storage.googleapis.com/agora-abis/v2'
+
+
 import requests as r
 
 def camel_to_snake(name):
@@ -35,7 +40,8 @@ class Fragment:
 
         if self.include_topic:
             full = self.slug[:max_len + 8]
-            full += f"_{self.topic[:8]}"
+            topic = str(self.topic)
+            full += f"_{topic[2:10]}"
         else:
             full = self.slug[:max_len]
         
@@ -63,15 +69,15 @@ class ABI:
             return ABI(label, abi_json)
 
     @staticmethod    
-    def from_internet(label, address, url=None, check=True):
+    def from_internet(label, address, chain_id, url=None, check=True):
 
         if url is None:
             url = os.getenv('ABI_URL')
-
+        
         if check:
             address = w3.to_checksum_address(address)
 
-        full_url = url + address + ".json"
+        full_url = url + f"/{chain_id}/checked/" + address + ".json"
         try:
             abi_json = r.get(full_url).json()
         except:
@@ -90,12 +96,31 @@ class ABISet:
             for fragment in abi.fragments:
                 if fragment.type == 'event':
                     yield fragment
+
+    @property
+    def unique_events(self):
+
+        already_returned = []
+
+        for abi in self.abis:
+            for fragment in abi.fragments:
+                if fragment.type == 'event':
+                    if fragment.signature not in already_returned:
+                        already_returned.append(fragment.signature)
+                        yield fragment
+
     @property
     def fragments(self):
         for abi in self.abis:
             for fragment in abi.fragments:
                 yield fragment
-    
+
+    def get_pgtable_by_signature(self, signature):
+
+        event = self.get_by_signature(signature)
+
+        return self.pgtable(event)
+
     def get_pgtable_by_name(self, name):
 
         event = self.get_by_name(name)
@@ -222,4 +247,37 @@ class FQPGSqlGen:
             return self.schema + "." + self.abis.pgtable(event)
         else:
             return self.abis.pgtable(event)
+
+if __name__ == '__main__':
+
+
+    if False:
+        new = ABI.from_internet('testOPGov@t=0', '0x3f6837964616a0c8853b1a38b2bbdb08dae5fc48')
+        new = ABISet('new', [new])
+        old = ABI.from_internet('testOPGov@t=-1', '0xe4e2ec9cd41a672de3925a1e39b658367a99b1ef')
+        old = ABISet('old', [old])
+
+        diff = old.compare_signatures(new)
+
+        both = ABISet('both', [new, old])
+
+
+        out = []
+        for event in both.unique_events:
+            print(event)
+            out.append(event.literal)
+
+        import json
+        print(json.dumps(out))
+    
+    if True:
+
+
+
+        new = ABI.from_file('new', '/Users/jm/code/tenants/abis/0x2b7a5fbba87ebb3089525d5fd61b914a6656ff6b.json')
+        new = ABISet('new', [new])
+        old = ABI.from_internet('old', '0x2b7a5fbba87ebb3089525d5fd61b914a6656ff6b')
+        old = ABISet('old', [old])
+
+        diff = old.compare_signatures(new)
 
