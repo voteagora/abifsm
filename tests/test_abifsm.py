@@ -92,8 +92,8 @@ def test_compare_events_mismatching():
 @skip_if_no_abi_url
 def test_read_from_internet():
 
-    abi_b = ABI.from_file('token', 'tests/abis/0x54bec61cf9b5daadd12d79196737974243dda684.json')
-    abi_n = ABI.from_internet('token', '0x54bec61cf9b5daadd12d79196737974243dda684')
+    abi_b = ABI.from_file('token', 'tests/abis/0x4200000000000000000000000000000000000042.json')
+    abi_n = ABI.from_internet('token', '0x4200000000000000000000000000000000000042', 10)
 
 def test_lookup_and_table_naming(abiset):
 
@@ -122,8 +122,8 @@ def test_fully_qualified_table_name_gen(abiset):
 def test_snippet_in_readme():
 
     token = ABI.from_file('token', 'tests/abis/0x54bec61cf9b5daadd12d79196737974243dda684.json')
-    gov = ABI.from_internet('gov', '0x7292df10a65793398f77af44da6da1c3cb10932e')
-    ptc = ABI.from_internet('ptc', '0xd33bb23fe5fbee2cb78c7d337c3af22c69b5b21a')
+    gov = ABI.from_internet('gov', '0xb4e9d0ca820320ebac45a4d60b020f64f0d6d4be', 10)
+    ptc = ABI.from_internet('ptc', '0xCE52b7cc490523B3e81C3076D5ae5Cca9a3e2D6F', 10)
 
     abis = ABISet('mydao', [token, gov, ptc])
 

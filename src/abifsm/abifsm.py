@@ -28,6 +28,7 @@ class Fragment:
         params = ",".join([param['type'] for param in self.literal.get('inputs', [])])
         self.signature = f"{self.name}({params})"
         self.topic = w3.keccak(text=self.signature).hex()
+        self.topic = self.topic.replace("0x", "")
 
         if self.name:
             self.slug = camel_to_snake(self.name)
