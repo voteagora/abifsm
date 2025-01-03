@@ -42,11 +42,16 @@ class Fragment:
         if self.include_topic:
             full = self.slug[:max_len + 8]
             topic = str(self.topic)
-            full += f"_{topic[2:10]}"
+            full += f"_{topic[:8]}"
         else:
             full = self.slug[:max_len]
         
         return full[:max_len]
+    
+    @property
+    def fields(self):
+        return [o['name'] for o in self.inputs]
+
     
 
 class ABI:
@@ -62,6 +67,12 @@ class ABI:
     def __len__(self):
         return len(self.fragments)
 
+    def is_proxy(self):
+        
+        signatures = {fragment.signature for fragment in self.fragments}
+
+        return set(['implementation()', 'upgradeTo(address)']).issubset(signatures)
+
     @staticmethod    
     def from_file(label, fname):
 
@@ -70,7 +81,7 @@ class ABI:
             return ABI(label, abi_json)
 
     @staticmethod    
-    def from_internet(label, address, chain_id, url=None, check=True):
+    def from_internet(label, address, chain_id, url=None, check=True, implementation=False):
 
         if url is None:
             url = os.getenv('ABI_URL')
@@ -78,13 +89,41 @@ class ABI:
         if check:
             address = w3.to_checksum_address(address)
 
+        # if implementation:
+        #     if address.lower() == '0xcDF27F107725988f2261Ce2256bDfCdE8B382B10'.lower():
+        #        address = '0xecbf4ed9f47302f00f0f039a691e7db83bdd2624'
+
         full_url = url + f"/{chain_id}/checked/" + address + ".json"
         try:
             abi_json = r.get(full_url).json()
         except:
             raise Exception(f"ABI not found for {address} @ {full_url}.")
 
-        return ABI(label, abi_json)
+        potential_abi = ABI(label, abi_json)
+
+        if potential_abi.is_proxy() and implementation:
+
+            if chain_id == 10:
+
+                optimism_rpc = "https://mainnet.optimism.io"
+                web3 = w3(w3.HTTPProvider(optimism_rpc))
+                proxy_address = w3.to_checksum_address(address)
+
+                # EIP-1967 implementation storage slot
+                IMPLEMENTATION_SLOT = "0x360894A13BA1A3210667C828492DB98DCA3E2076CC3735A920A3CA505D382BBC"
+
+                storage_data = web3.eth.get_storage_at(proxy_address, IMPLEMENTATION_SLOT)
+
+                implementation_address = storage_data[-20:].hex()
+
+                print(f"Warning: Returning ABI for implementation '{implementation_address}', rather than ABI for '{address}.")
+
+                return ABI.from_internet(label, implementation_address, chain_id, url=url, check=check)
+            
+            else:
+                raise Exception(f"implementation=True is not supported for chain ID# {chain_id}.")
+
+        return potential_abi
 
 class ABISet:
     def __init__(self, name, abis):
