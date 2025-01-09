@@ -16,6 +16,17 @@ def camel_to_snake(name):
     snake_case = re.sub(r'([a-z\d])([A-Z])', r'\1_\2', snake_case)  # Handles camelCase transitions
     return snake_case.lower().lstrip('_')
 
+def make_literal_signature(input_type):
+
+    print(input_type)
+    if input_type['type'] == 'tuple':
+        typ = ",".join(make_literal_signature(t) for t in input_type['components'])
+        return f"({typ})"
+    elif input_type['type'] == 'tuple[]':
+        typ = ",".join(make_literal_signature(t) for t in input_type['components'])
+        return f"({typ})[]"
+    else:
+        return input_type['type']
 
 class Fragment:
     def __init__(self, abi_label, literal):
@@ -25,7 +36,8 @@ class Fragment:
         self.name = literal.get('name', None)
         self.inputs = literal.get('inputs', None)
 
-        params = ",".join([param['type'] for param in self.literal.get('inputs', [])])
+        params = ",".join([make_literal_signature(param) for param in self.literal.get('inputs', [])])
+
         self.signature = f"{self.name}({params})"
         self.topic = w3.keccak(text=self.signature).hex()
         self.topic = self.topic.replace("0x", "")
