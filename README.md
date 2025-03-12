@@ -1,5 +1,7 @@
 # ABI Fragment Set Manager
 
+[![Tests](https://github.com/voteagora/abifsm/actions/workflows/tests.yml/badge.svg)](https://github.com/voteagora/abifsm/actions/workflows/tests.yml)
+
 A library for working with sets of EVM contracts and their ABIs, mostly for getting consistent naming conventions and working with topics.
 
 Basically syntatic sugar for...
