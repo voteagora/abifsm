@@ -18,7 +18,6 @@ def camel_to_snake(name):
 
 def make_literal_signature(input_type):
 
-    print(input_type)
     if input_type['type'] == 'tuple':
         typ = ",".join(make_literal_signature(t) for t in input_type['components'])
         return f"({typ})"
