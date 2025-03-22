@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """Tests for `abifsm` package."""
-import pytest, os
+import pytest
+import os
 
 from abifsm import ABI, ABISet, FQPGSqlGen
 
