@@ -1,6 +1,7 @@
 import re
 import os
 import json
+import requests
 from collections import Counter
 from web3 import Web3 as w3
 from difflib import ndiff
@@ -115,8 +116,8 @@ class ABI:
         full_url = url + f"/{chain_id}/checked/" + address + ".json"
         try:
             abi_json = r.get(full_url).json()
-        except:
-            raise Exception(f"ABI not found for {address} @ {full_url}.")
+        except (requests.RequestException, json.JSONDecodeError) as e:
+            raise Exception(f"ABI not found for {address} @ {full_url}. Error: {str(e)}")
 
         potential_abi = ABI(label, abi_json)
 
@@ -289,12 +290,12 @@ class FQPGSqlGen:
 
         try:
             event_by_name = self.abis.get_by_name(key)
-        except:
+        except (KeyError, ValueError):
             pass
         
         try:
             event_by_topic = self.abis.get_by_topic(key)
-        except:
+        except (KeyError, ValueError):
             pass
 
         event = event_by_name or event_by_topic
@@ -339,4 +340,3 @@ if __name__ == '__main__':
         old = ABISet('old', [old])
 
         diff = old.compare_signatures(new)
-
