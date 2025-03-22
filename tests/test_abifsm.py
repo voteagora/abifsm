@@ -92,8 +92,21 @@ def test_compare_events_mismatching():
 @skip_if_no_abi_url
 def test_read_from_internet():
 
-    abi_b = ABI.from_file('token', 'tests/abis/0x4200000000000000000000000000000000000042.json')
-    abi_n = ABI.from_internet('token', '0x4200000000000000000000000000000000000042', 10)
+    abi = ABI.from_internet('token', '0x4200000000000000000000000000000000000042', 10)
+
+    assert len(abi.fragments) == 34
+
+def test_read_from_file():
+
+    abi = ABI.from_file('token', 'tests/abis/0x4200000000000000000000000000000000000042.json')
+
+    assert len(abi.fragments) == 34
+
+def test_read_from_url():
+
+    abi = ABI.from_url('gov', 'https://storage.googleapis.com/agora-abis/OptimismGovernors.json')
+
+    assert len(abi.fragments) == 18
 
 def test_lookup_and_table_naming(abiset):
 

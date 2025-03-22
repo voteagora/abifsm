@@ -2,6 +2,7 @@ import re, os, json
 from collections import Counter
 from web3 import Web3 as w3
 from difflib import ndiff, unified_diff
+import requests as r
 
 import os 
 
@@ -90,6 +91,13 @@ class ABI:
         with open(fname) as f:
             abi_json = json.load(f)
             return ABI(label, abi_json)
+
+    @staticmethod    
+    def from_url(label, url):
+
+        resp = r.get(url)
+        abi_json = resp.json()
+        return ABI(label, abi_json)
 
     @staticmethod    
     def from_internet(label, address, chain_id, url=None, check=True, implementation=False):
