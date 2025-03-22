@@ -1,15 +1,15 @@
-import re, os, json
+import re
+import os
+import json
 from collections import Counter
 from web3 import Web3 as w3
-from difflib import ndiff, unified_diff
+from difflib import ndiff
 import requests as r
 
-import os 
 
 os.environ['ABI_URL'] = 'https://storage.googleapis.com/agora-abis/v2'
 
 
-import requests as r
 
 def camel_to_snake(name):
     # Handle acronyms followed by a lowercase letter and acronyms at the start
