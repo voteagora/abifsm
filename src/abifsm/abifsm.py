@@ -6,6 +6,7 @@ from collections import Counter
 from web3 import Web3 as w3
 from difflib import ndiff
 import requests as r
+import time
 
 
 os.environ['ABI_URL'] = 'https://storage.googleapis.com/agora-abis/v2'
@@ -113,7 +114,7 @@ class ABI:
         #     if address.lower() == '0xcDF27F107725988f2261Ce2256bDfCdE8B382B10'.lower():
         #        address = '0xecbf4ed9f47302f00f0f039a691e7db83bdd2624'
 
-        full_url = url + f"/{chain_id}/checked/" + address + ".json"
+        full_url = url + f"/{chain_id}/checked/" + address + ".json" + f"?t={int(time.time())}"
         try:
             abi_json = r.get(full_url).json()
         except (requests.RequestException, json.JSONDecodeError) as e:
