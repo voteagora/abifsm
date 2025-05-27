@@ -125,25 +125,26 @@ class ABI:
         if potential_abi.is_proxy() and implementation:
 
             if chain_id == 10:
-
-                optimism_rpc = "https://mainnet.optimism.io"
-                web3 = w3(w3.HTTPProvider(optimism_rpc))
-                proxy_address = w3.to_checksum_address(address)
-
-                # EIP-1967 implementation storage slot
-                IMPLEMENTATION_SLOT = "0x360894A13BA1A3210667C828492DB98DCA3E2076CC3735A920A3CA505D382BBC"
-
-                storage_data = web3.eth.get_storage_at(proxy_address, IMPLEMENTATION_SLOT)
-
-                implementation_address = storage_data[-20:].hex()
-
-                print(f"Warning: Returning ABI for implementation '{implementation_address}', rather than ABI for '{address}.")
-
-                return ABI.from_internet(label, implementation_address, chain_id, url=url, check=check)
-            
+                rpc = "https://mainnet.optimism.io"
+            elif chain_id == 11155420:
+                rpc = "https://sepolia.optimism.io"
             else:
                 raise Exception(f"implementation=True is not supported for chain ID# {chain_id}.")
 
+            web3 = w3(w3.HTTPProvider(rpc))
+            proxy_address = w3.to_checksum_address(address)
+
+            # EIP-1967 implementation storage slot
+            IMPLEMENTATION_SLOT = "0x360894A13BA1A3210667C828492DB98DCA3E2076CC3735A920A3CA505D382BBC"
+
+            storage_data = web3.eth.get_storage_at(proxy_address, IMPLEMENTATION_SLOT)
+
+            implementation_address = storage_data[-20:].hex()
+
+            print(f"Warning: Returning ABI for implementation '{implementation_address}', rather than ABI for '{address}.")
+
+            return ABI.from_internet(label, implementation_address, chain_id, url=url, check=check)
+        
         return potential_abi
 
 class ABISet:
