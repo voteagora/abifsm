@@ -2,7 +2,7 @@
 
 __author__ = """jefag"""
 __email__ = 'jeff@voteagora.com'
-__version__ = '0.5.1'
+__version__ = '0.5.2'
 
 __all__ = ['ABI', 'ABISet', 'FQPGSqlGen', 'CHAIN_IDS']
 from .abifsm import ABI, ABISet, FQPGSqlGen
